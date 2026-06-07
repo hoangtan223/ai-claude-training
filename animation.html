@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel Grid JSON Renderer</title>
+
+    <style>
+      body {
+        margin: 0;
+        background: #111827;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: sans-serif;
+      }
+
+      #grid {
+        width: 300px;
+        height: 400px;
+        background: #1f2937;
+        box-sizing: border-box;
+      }
+
+      .pixel {
+        width: 100%;
+        height: 100%;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: var(--base-opacity);
+        }
+
+        50% {
+          opacity: var(--peak-opacity);
+        }
+
+        100% {
+          opacity: var(--base-opacity);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="grid"></div>
+
+    <script>
+      const animationSpec = {
+        type: "pixelGridPulse",
+        version: "1.0",
+        layout: {
+          columns: 6,
+          rows: 8,
+          paddingPx: 6.5,
+          gapX: 1,
+          gapY: 1.1,
+          cornerRadiusPx: 1.66,
+        },
+        animation: {
+          property: "opacity",
+          keyframes: ["baseOpacity", "peakOpacity", "baseOpacity"],
+          peakFormula: "min(baseOpacity * 2.5 + 0.1, 1)",
+          durationSeconds: {
+            min: 1,
+            max: 3,
+          },
+          delaySeconds: {
+            min: 0,
+            max: 1,
+          },
+          repeat: "infinite",
+          easing: "easeInOut",
+        },
+        pixels: [
+          { index: 0, color: "#3B82F6", baseOpacity: 0.2 },
+          { index: 1, color: "#22C55E", baseOpacity: 0.35 },
+          { index: 2, color: "#F97316", baseOpacity: 0.15 },
+        ],
+      };
+
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function calculatePeakOpacity(baseOpacity) {
+        return Math.min(baseOpacity * 2.5 + 0.1, 1);
+      }
+
+      const grid = document.getElementById("grid");
+
+      const { columns, rows, paddingPx, gapX, gapY, cornerRadiusPx } =
+        animationSpec.layout;
+
+      grid.style.display = "grid";
+      grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      grid.style.padding = `${paddingPx}px`;
+      grid.style.columnGap = `${gapX}px`;
+      grid.style.rowGap = `${gapY}px`;
+
+      const totalCells = columns * rows;
+
+      for (let i = 0; i < totalCells; i++) {
+        const pixelData = animationSpec.pixels.find((p) => p.index === i) || {
+          color: "#6B7280",
+          baseOpacity: 0.08,
+        };
+
+        const peakOpacity = calculatePeakOpacity(pixelData.baseOpacity);
+
+        const duration = random(
+          animationSpec.animation.durationSeconds.min,
+          animationSpec.animation.durationSeconds.max,
+        );
+
+        const delay = random(
+          animationSpec.animation.delaySeconds.min,
+          animationSpec.animation.delaySeconds.max,
+        );
+
+        const cell = document.createElement("div");
+
+        cell.className = "pixel";
+
+        cell.style.backgroundColor = pixelData.color;
+        cell.style.borderRadius = `${cornerRadiusPx}px`;
+
+        cell.style.setProperty("--base-opacity", pixelData.baseOpacity);
+
+        cell.style.setProperty("--peak-opacity", peakOpacity);
+
+        cell.style.animation = `
+    pulse
+    ${duration}s
+    ease-in-out
+    ${delay}s
+    infinite
+  `;
+
+        grid.appendChild(cell);
+      }
+    </script>
+  </body>
+</html>
